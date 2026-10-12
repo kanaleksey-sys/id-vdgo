@@ -432,12 +432,13 @@ $('lead').addEventListener('submit',e=>{
   const lead={name,phone,message:msg||'—',page:location.href};
   const jobs=[post('https://api.web3forms.com/submit',{
     access_key:LEAD.web3formsKey,subject:'Заявка с сайта ИД ВДГО: '+name,from_name:'Сайт ИД ВДГО',
-    'Имя':name,'Телефон':phone,'Объекты и ГРО':msg||'—','Страница':location.href,botcheck:false})];
+    'Имя':name,'Телефон':phone,'Объекты и ГРО':msg||'—','Страница':location.href,'Источник':window.SRC_TAG||'—',botcheck:false})];
   if(LEAD.tgEndpoint)jobs.push(post(LEAD.tgEndpoint,lead));
 
   btn.disabled=true;btn.textContent='Отправляем…';
   Promise.allSettled(jobs).then(res=>{
     if(res.some(r=>r.status==='fulfilled')){
+      if(window.srcHit)srcHit('lead');
       f.innerHTML='<div class="done"><div class="ic">✓</div><h3>Заявка отправлена</h3><p>Спасибо, '+name.replace(/[<>&"]/g,'')+'! Свяжемся с Вами по номеру '+phone.replace(/[<>&"]/g,'')+' и назовём срок и стоимость.</p></div>';
       f.scrollIntoView({behavior:'smooth',block:'center'});
     }else{
@@ -447,5 +448,31 @@ $('lead').addEventListener('submit',e=>{
     }
   });
 });
+</script>
+<script>
+/* Счётчик источников: без cookies и личных данных — только метка, откуда пришли (?src=… из рекламы или сайт-источник), и вид события.
+   Метка запоминается в браузере и подставляется в ссылки на бота, чтобы в заявке было видно, с какой рекламы человек. */
+(function(){
+  var EP='https://id-vdgo-bot.kanaleksey.workers.dev/hit';
+  var src='';
+  try{var q=new URLSearchParams(location.search);src=(q.get('src')||q.get('utm_source')||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,40)}catch(e){}
+  if(!src){try{src=localStorage.getItem('src_tag')||''}catch(e){}}
+  if(!src){
+    var h='';try{h=new URL(document.referrer).hostname}catch(e){}
+    var map=[[/2gis/,'ref_2gis'],[/yandex|ya\.ru/,'ref_yandex'],[/google/,'ref_google'],[/t\.me|telegram/,'ref_telegram'],[/max\.ru|oneme/,'ref_max'],[/vk\.(com|ru)/,'ref_vk'],[/ok\.ru/,'ref_ok'],[/avito/,'ref_avito']];
+    src='site';
+    if(h&&h!==location.hostname){src='ref_other';for(var i=0;i<map.length;i++){if(map[i][0].test(h)){src=map[i][1];break}}}
+  }
+  try{localStorage.setItem('src_tag',src)}catch(e){}
+  window.SRC_TAG=src;
+  window.srcHit=function(e){try{fetch(EP+'?src='+src+(e?'&e='+e:''),{mode:'no-cors',keepalive:true}).catch(function(){})}catch(x){}};
+  srcHit();
+  
+  document.addEventListener('click',function(ev){
+    var a=ev.target.closest&&ev.target.closest('a,button');if(!a)return;
+    var u=a.getAttribute('href')||'';
+    if(/wa\.me|t\.me\/Aleks_GC|max\.ru\/u\/|^tel:/.test(u)||a.dataset.to)srcHit('contact');
+  },true);
+})();
 </script>
 </body></html>
