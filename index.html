@@ -242,7 +242,7 @@ form .btn:disabled{opacity:.6;cursor:wait}
 </table></div>
 <div class="pnotes">
 <div class="card"><h3>Полный комплект</h3><p>Точная цена зависит от исполнительной схемы. В AutoCAD или с небольшими правками — дешевле. Только PDF, который нужно перечертить, — дороже.</p></div>
-<div class="card"><h3>Печать — только Южно-Сахалинск</h3><p>Печать и подшивка в скоросшиватель +500&nbsp;₽, доставка по городу +500&nbsp;₽. Например, минимальный на подземный: 2&nbsp;500&nbsp;₽ электронный, 3&nbsp;500&nbsp;₽ печатный с доставкой.</p></div>
+<div class="card"><h3>Печать — только Южно-Сахалинск</h3><p>Печать и подшивка в скоросшиватель +500&nbsp;₽ за комплект, доставка по городу +500&nbsp;₽ на один адрес. Например, минимальный на подземный: 2&nbsp;500&nbsp;₽ электронный, 3&nbsp;500&nbsp;₽ печатный с доставкой.</p></div>
 <div class="card"><h3>Оплата и объём</h3><p>Без предоплаты, только за готовые ИД. Если передаёте объекты регулярно, цену обсудим индивидуально.</p></div>
 </div>
 
@@ -254,7 +254,7 @@ form .btn:disabled{opacity:.6;cursor:wait}
 <div class="opt"><b>Количество объектов</b><div class="range"><input type="range" id="qty" min="1" max="30" value="1" aria-label="Количество объектов"><output id="qtyOut">1 объект</output></div></div>
 <div class="opt" style="margin-bottom:0"><b>Только для Южно-Сахалинска</b>
 <label class="cb"><input type="checkbox" id="print"> Печать и подшивка, +500 ₽ за комплект</label>
-<label class="cb off" id="delivWrap"><input type="checkbox" id="deliv" disabled> Доставка по городу, +500 ₽ за комплект</label></div>
+<label class="cb off" id="delivWrap"><input type="checkbox" id="deliv" disabled> Доставка по городу, +500 ₽ на один адрес</label></div>
 </div>
 <div class="card res">
 <p>Предварительная стоимость</p>
@@ -311,7 +311,7 @@ form .btn:disabled{opacity:.6;cursor:wait}
 <details><summary>Что от нас нужно и в каком виде?</summary><p>Рабочая документация, исполнительная схема (для полного комплекта), фото смонтированного газопровода, замеры, данные по оборудованию и материалам и образцы принятых комплектов Вашей ГРО. Схема в AutoCAD обойдётся дешевле, чем в PDF.</p></details>
 <details><summary>Можно передать сразу много объектов? Будет скидка?</summary><p>Да. 10 объектов делаем за 5–10 дней. При регулярной передаче объектов цену обсуждаем индивидуально.</p></details>
 <details><summary>Как передаются данные и готовые документы?</summary><p>Через мессенджер: Max, Telegram или WhatsApp. Готовый комплект — в электронном виде.</p></details>
-<details><summary>Есть печатный вариант?</summary><p>Да, только для подрядчиков из Южно-Сахалинска: печать в скоросшиватель, чёрно-белая, А4, +500 ₽. Доставка по городу ещё +500 ₽.</p></details>
+<details><summary>Есть печатный вариант?</summary><p>Да, только для подрядчиков из Южно-Сахалинска: печать в скоросшиватель, чёрно-белая, А4, +500 ₽. Доставка по городу ещё +500 ₽ на один адрес, сколько бы ни было комплектов.</p></details>
 </div></div></section>
 
 <!-- 7. Форма -->
@@ -369,16 +369,16 @@ $('deliv').addEventListener('change',calc);
 
 function summary(){
   const q=+$('qty').value, base=PRICES[st.kit][st.pipe];
-  const extra=($('print').checked?PRINT:0)+($('deliv').checked?DELIV:0);
-  return {q,base,extra,total:(base+extra)*q};
+  const extra=$('print').checked?PRINT:0, deliv=$('deliv').checked?DELIV:0;   // доставка — за адрес, не за комплект (17.10.2026)
+  return {q,base,extra,deliv,total:(base+extra)*q+deliv};
 }
 function calc(){
   const s=summary();
   $('qtyOut').textContent=plural(s.q);
   let h=`<div><span>${NAMES[st.kit]}, ${NAMES[st.pipe]}</span><b>${fmt(s.base)}</b></div>`;
   if($('print').checked)h+=`<div><span>Печать и подшивка</span><b>+${fmt(PRINT)}</b></div>`;
-  if($('deliv').checked)h+=`<div><span>Доставка</span><b>+${fmt(DELIV)}</b></div>`;
   h+=`<div><span>Объектов</span><b>× ${s.q}</b></div>`;
+  if(s.deliv)h+=`<div><span>Доставка, один адрес</span><b>+${fmt(s.deliv)}</b></div>`;
   $('lines').innerHTML=h;
   $('total').textContent='от '+fmt(s.total);
   $('hint').textContent=s.q>=5
