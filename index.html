@@ -261,8 +261,7 @@ form .btn:disabled{opacity:.6;cursor:wait}
 <div class="lines" id="lines"></div>
 <div class="total" id="total">от 2 000 ₽</div>
 <p id="hint">Точную цену назовём, когда увидим исходные данные. Предоплаты нет.</p>
-<button class="btn" id="toForm" type="button">Отправить этот расчёт</button>
-<a class="btn ghost" href="https://id-vdgo.website.yandexcloud.net/konfigurator" style="display:block;width:100%;margin-top:10px;text-align:center">Подробный расчёт и отправка документов →</a>
+<a class="btn" href="https://id-vdgo.website.yandexcloud.net/konfigurator" style="display:block;width:100%;text-align:center">Подробный расчёт и отправка документов →</a>
 </div>
 </div>
 </section>
@@ -388,15 +387,7 @@ function calc(){
 }
 calc();
 
-$('toForm').addEventListener('click',()=>{
-  const s=summary();
-  let t=`Расчёт с сайта: ${NAMES[st.kit]} комплект, ${NAMES[st.pipe]} газопровод, ${plural(s.q)}`;
-  if($('print').checked)t+=', печать'+($('deliv').checked?' и доставка':'');
-  t+=`. Предварительно: от ${fmt(s.total)}.`;
-  $('msg').value=t;
-  $('form').scrollIntoView({behavior:'smooth'});
-  setTimeout(()=>$('name').focus({preventScroll:true}),600);
-});
+/* кнопка «Отправить этот расчёт» убрана 17.10.2026: заявка с расчётом и документами — в конфигураторе */
 
 /* Форма заявки: проверка полей и отправка на почту (Web3Forms) и в Telegram (когда подключён) */
 const LEAD={
