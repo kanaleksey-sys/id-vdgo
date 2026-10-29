@@ -389,9 +389,9 @@ calc();
 
 /* кнопка «Отправить этот расчёт» убрана 17.10.2026: заявка с расчётом и документами — в конфигураторе */
 
-/* Форма заявки: проверка полей и отправка на почту (Web3Forms) и в Telegram (когда подключён) */
+/* Форма заявки: проверка полей и отправка на почту через функцию Яндекс Облака (серверы в России); Web3Forms убран 29.10.2026 */
 const LEAD={
-  web3formsKey:'07eae593-8561-4d48-a894-b77de91a0de0', // публичный ключ: разрешает только слать письма на почту владельца
+  endpoint:'https://functions.yandexcloud.net/d4e7epsfr012a34123es', // функция id-vdgo-konfig-zayavka, действие lead
   tgEndpoint:'', // адрес обработчика Cloudflare для Telegram; пусто — канал выключен
   maxUrl:'https://max.ru/u/f9LHodD0cOLZw0lPa73eJtUCJfVcg_uPYq3ba44JdD4cr4t-ka2lRkqxiUA'
 };
@@ -407,7 +407,7 @@ Object.keys(checks).forEach(k=>$(k).addEventListener(k==='consent'?'change':'inp
 const post=(url,data)=>{
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
   return fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data),signal:ctl.signal})
-    .then(r=>r.json().catch(()=>({})).then(j=>{if(!r.ok||j.success===false)throw new Error(j.message||r.status);return j;}))
+    .then(r=>r.json().catch(()=>({})).then(j=>{if(!r.ok||j.success===false||j.ok===false)throw new Error(j.message||j.error||r.status);return j;}))
     .finally(()=>clearTimeout(t));
 };
 
@@ -422,9 +422,7 @@ $('lead').addEventListener('submit',e=>{
 
   const name=$('name').value.trim(), phone=$('phone').value.trim(), msg=$('msg').value.trim();
   const lead={name,phone,message:msg||'—',page:location.href};
-  const jobs=[post('https://api.web3forms.com/submit',{
-    access_key:LEAD.web3formsKey,subject:'Заявка с сайта ИД ВДГО: '+name,from_name:'Сайт ИД ВДГО',
-    'Имя':name,'Телефон':phone,'Объекты и ГРО':msg||'—','Страница':location.href,'Источник':window.SRC_TAG||'—',botcheck:false})];
+  const jobs=[post(LEAD.endpoint,{action:'lead',name,phone,message:msg||'—',page:location.href,src:window.SRC_TAG||'',consent:true,botcheck:false})];
   if(LEAD.tgEndpoint)jobs.push(post(LEAD.tgEndpoint,lead));
 
   btn.disabled=true;btn.textContent='Отправляем…';
